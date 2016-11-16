@@ -96,7 +96,7 @@ dist(1:nstep) = 0.0;
 
 figure(1)
 for i = 1:nsample
-    [y_hinf_r,~] = lsim(cls_per_uniform(1:2,1:2,i),[ref',dist'],time_r);
+    [y_hinf_r,~,sysStates] = lsim(cls_per_uniform(1:2,1:2,i),[ref',dist'],time_r);
     plot(time_r,ref,'r--',time_r,y_hinf_r(:,1),'b-')
     hold on
 end
@@ -104,37 +104,57 @@ end
 %% ------------------ Disturbance Resistance ------------------ %%
 
 % Disturbance definition
-tfin = 0.16;        % final time
-ti = 1e-6;          % sampling time
-[dist1,time_d] = gensig('square',tfin/2,tfin,ti);
-dist = 1 - 2*dist1;
-nstep = size(time_d,1);
-ref(1:nstep) = 0.0;
-
-figure(2)
-for i = 1:nsample
-    [y_hinf_d,~] = lsim(cls_per_uniform(1:2,1:2,i),[ref',dist],time_d);
-    plot(time_d,dist,'r--',time_d,y_hinf_d(:,1),'b-')
-    hold on
-end
+% % tfin = 0.16;        % final time
+% % ti = 1e-6;          % sampling time
+% % [dist1,time_d] = gensig('square',tfin/2,tfin,ti);
+% % dist = 1 - 2*dist1;
+% % nstep = size(time_d,1);
+% % ref(1:nstep) = 0.0;
+% % 
+% % figure(2)
+% % for i = 1:nsample
+% %     [y_hinf_d,~] = lsim(cls_per_uniform(1:2,1:2,i),[ref',dist],time_d);
+% %     plot(time_d,dist,'r--',time_d,y_hinf_d(:,1),'b-')
+% %     hold on
+% % end
 
 %% ------------- Transient Response when M changes ------------- %%
-Import_Table_Of_Mutual_Inductances %import 30 mutual inductances.
+clear ref; clear dist 
+% Reference definition
+r1 = 50;
+ti = 1e-6;
+tfin = 0.16;
+time_r = 0:ti:tfin;
+nstep = size(time_r,2);
+ref(1:nstep) = r1;
+dist(1:nstep) = 0.0;
 
+% [y,t,x] = lsim( cls_per.Nominal,[ref(1:3000)',dist(1:3000)],time(1:3000));
+% figure(8)
+% plot(t,y,'b-')
+% hold on
+
+
+
+Import_Table_Of_Mutual_Inductances %import 30 mutual inductances.
+numberOfM = size(thirtyValuesOfM,1);
 arrayOfThirtyClosedLoopSystems = usubs(clp_per,'M',thirtyValuesOfM);
 
-finalStatesOfTheLastSimulationPeriod = x(3000,:);
-t0=3000+1;
+initialStates = sysStates(nstep,:);
+startingTime = 1;
+SimulationPeriod = floor(nstep/numberOfM);
+endingTime = startingTime + SimulationPeriod;
 
-for i = 1:nsample
-    [yy,tt,xx] = lsim(cls30(:,:,i,1),[ref(t0:t0+500)',dist(t0:t0+500)],time(t0:t0+500),x0);
+for discreteTimeInAPeriod = 1:numberOfM
+    [yy,tt,xx] = lsim(arrayOfThirtyClosedLoopSystems(:,:,discreteTimeInAPeriod,1),[ref(startingTime:endingTime)',dist(startingTime:endingTime)'],time_r(startingTime:endingTime),initialStates);
    
     figure(8)
-    plot(time(t0:t0+500),yy,'b-')
+    plot(time_r(startingTime:endingTime),yy(:,1),'b-')
     hold on
     [r n] =size(xx);
-    x0=xx(r,:);
-    t0=t0+500;
+    initialStates=xx(r,:);
+    startingTime = startingTime + SimulationPeriod;
+    endingTime = endingTime + SimulationPeriod;
 end 
 
 figure(8)

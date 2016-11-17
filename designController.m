@@ -10,7 +10,7 @@ Wm = gainWm*tf(nuWm,dnWm);
 % Performance weighting function
 nuWp = [1];
 dnWp = [10 1];
-gainWp = 480; 
+gainWp = WpGain; 
 Wp = gainWp*tf(nuWp,dnWp);
 
 % Control weighting function           

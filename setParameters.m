@@ -1,4 +1,4 @@
-clear all;clf;clc;
+
 %% Uncertain Parameters
 M0 = 19.03e-6;
 Rdc0 = 2.5;

@@ -7,8 +7,9 @@ function Wp and control weighting function Wu. This file calls three
 external m files, setParametes.m, importM.m and designController.m, to help 
 evaluate system performance while the mutual inductance, M, is changing.
 %}
+% clear all;clf;clc;
 %% External Process
-WpGain = 480;
+% WpGain = 480;
 setParameters
 designController
 
@@ -24,7 +25,7 @@ clp_perf = sysic;
 BIBOStability = hinfnorm(clp_perf);   %supposed to be less than 1.
 
 %% Grid uncertain parameters uniformly
-nsample = 5;
+nsample = 1;
 cls_perf_uniform = gridureal(clp_perf, nsample);
 
 %% -- Plot Reference Tracking Performance --
@@ -44,11 +45,11 @@ ref(3*floor(nstep/4):nstep) = r1;%r1
 
 dist(1:nstep) = 0.0;
 
-figure(1)
+% figure(1)
 for i = 1:nsample
-    [y_hinf_r,~,sysStates] = lsim(cls_perf_uniform(1:2, 1:2, i), [ref', dist'], time_r);
-    plot(time_r,ref, 'r--', time_r, y_hinf_r(:,1), 'b-')
-    hold on
+    [y_hinf_r, ~, sysStates] = lsim(cls_perf_uniform(1:2, 1:2, i), [ref', dist'], time_r);
+%     plot(time_r, ref, 'r--', time_r, y_hinf_r(:,1), 'b-');
+%     hold on
 end
 
 %% -- Plot Transient Response when M changes --
@@ -56,13 +57,13 @@ initStates = sysStates(nstep, :);
 clear ref dist r1 r2 r3 tfin time_r nstep
 r1 = 50;
 ti = 1e-6;
-tfin = 0.6;
+tfin = 0.2;
 time_r = 0:ti:tfin;
 nstep = size(time_r, 2);
 ref(1:nstep) = r1;
 dist(1:nstep) = 0.0;
 
-importM                                      %Import 30 mutual inductances.
+importM                                       %Import 30 mutual inductances
 
 numM = size(thirtyM, 1);
 thirtyCls = usubs(clp_perf, 'M', thirtyM);
